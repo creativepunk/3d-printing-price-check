@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>3D Print Price</title>
+
+    <!-- PWA / Home screen -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="3D Print Price">
+    <meta name="theme-color" content="#f7f7fb">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '#0b61ff',
+                    },
+                    borderRadius: {
+                        '2xl': '1rem',
+                        '3xl': '1.5rem',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Glassmorphism for tabs */
+        .glass-tab {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Active tab style */
+        .tab-active {
+            color: #0b61ff;
+            background: rgba(11, 97, 255, 0.08);
+        }
+
+        /* Small utilities */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 min-h-screen pb-24">
+    <div class="max-w-xl mx-auto px-4 pt-8 md:pt-12" id="app">
+        <!-- Header -->
+        <header class="flex justify-between items-end mb-8">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">3D Print Price</h1>
+                <p class="text-sm text-slate-500 font-medium">Quick price calculator for 3D prints</p>
+            </div>
+        </header>
+
+        <!-- Calculator Screen -->
+        <main id="screen-calculator" class="space-y-6">
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-6 border border-slate-100">
+                <div class="space-y-5">
+                    <!-- Filament Used -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Filament
+                            Used</label>
+                        <div class="relative">
+                            <input id="grams" inputmode="decimal" placeholder="0"
+                                class="w-full bg-slate-50 border-0 rounded-2xl py-4 pl-5 pr-12 text-lg font-semibold focus:ring-2 focus:ring-accent transition-all outline-none" />
+                            <div class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">g</div>
+                        </div>
+                    </div>
+
+                    <!-- Print Time -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Print Time</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="relative">
+                                <input id="hours" type="number" min="0" value="1"
+                                    class="w-full bg-slate-50 border-0 rounded-2xl py-4 pl-5 pr-14 text-lg font-semibold focus:ring-2 focus:ring-accent transition-all outline-none" />
+                                <div
+                                    class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold uppercase">
+                                    hrs</div>
+                            </div>
+                            <div class="relative">
+                                <input id="minutes" type="number" min="0" max="59" value="0"
+                                    class="w-full bg-slate-50 border-0 rounded-2xl py-4 pl-5 pr-14 text-lg font-semibold focus:ring-2 focus:ring-accent transition-all outline-none" />
+                                <div
+                                    class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold uppercase">
+                                    min</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Material -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Material</label>
+                        <div class="relative">
+                            <select id="materialSelect"
+                                class="w-full appearance-none bg-slate-50 border-0 rounded-2xl py-4 px-5 text-lg font-semibold focus:ring-2 focus:ring-accent transition-all outline-none cursor-pointer"></select>
+                            <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Price Card -->
+            <div class="bg-accent rounded-3xl shadow-xl shadow-accent/20 p-8 text-white">
+                <div class="flex flex-col items-center gap-1">
+                    <div class="text-sm font-bold uppercase tracking-[0.2em] opacity-80">Estimated Price</div>
+                    <div class="text-5xl md:text-6xl font-black tracking-tight" id="totalPrice">₹0.00</div>
+                    <p class="text-xs text-center mt-4 opacity-70 font-medium leading-relaxed max-w-[240px]">
+                        Includes material, energy, wear, buffer, and profit margins.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Breakdown -->
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-6 border border-slate-100">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-5 ml-1">Cost Breakdown</h3>
+                <div class="space-y-3">
+                    <div
+                        class="flex justify-between items-center p-4 rounded-2xl bg-slate-50 border border-slate-100/50">
+                        <span class="font-bold text-slate-600">Material</span>
+                        <span id="materialCost" class="font-black text-slate-900">₹0.00</span>
+                    </div>
+                    <div
+                        class="flex justify-between items-center p-4 rounded-2xl bg-slate-50 border border-slate-100/50">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-600">Electricity</span>
+                            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Power × Unit
+                                Rate</span>
+                        </div>
+                        <span id="electricityCost" class="font-black text-slate-900">₹0.00</span>
+                    </div>
+                    <div
+                        class="flex justify-between items-center p-4 rounded-2xl bg-slate-50 border border-slate-100/50">
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-600">Machine Wear</span>
+                            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Cost /
+                                Lifespan</span>
+                        </div>
+                        <span id="deprCost" class="font-black text-slate-900">₹0.00</span>
+                    </div>
+                    <div
+                        class="flex justify-between items-center p-4 rounded-2xl bg-amber-50/50 border border-amber-100/50">
+                        <span class="font-bold text-amber-700">Buffer</span>
+                        <span id="bufferCost" class="font-black text-amber-800">₹0.00</span>
+                    </div>
+                    <div
+                        class="flex justify-between items-center p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100/50">
+                        <span class="font-bold text-emerald-700 text-lg">Profit</span>
+                        <span id="profitCost" class="font-black text-emerald-800 text-lg">₹0.00</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Materials Screen -->
+        <main id="screen-materials" class="space-y-6 hidden">
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-6 border border-slate-100">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-900">Materials</h2>
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Manage your filaments</p>
+                    </div>
+                    <button id="addMaterialBtn"
+                        class="bg-accent text-white px-5 py-2.5 rounded-2xl font-bold shadow-lg shadow-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                        Add New
+                    </button>
+                </div>
+
+                <div id="matList" class="space-y-3">
+                    <!-- Items injected by JS -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Settings Screen -->
+        <main id="screen-settings" class="space-y-6 hidden">
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-6 border border-slate-100">
+                <div class="mb-6">
+                    <h2 class="text-xl font-extrabold text-slate-900">Machine Settings</h2>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Configure your printer & costs
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Machine Cost
+                            (₹)</label>
+                        <input id="machineCost" placeholder="35000"
+                            class="w-full bg-transparent border-0 p-0 text-lg font-bold text-slate-900 focus:ring-0 outline-none" />
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Lifespan
+                            (hrs)</label>
+                        <input id="lifespan" placeholder="5000"
+                            class="w-full bg-transparent border-0 p-0 text-lg font-bold text-slate-900 focus:ring-0 outline-none" />
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Avg Power
+                            (W)</label>
+                        <input id="avgPower" placeholder="150"
+                            class="w-full bg-transparent border-0 p-0 text-lg font-bold text-slate-900 focus:ring-0 outline-none" />
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-400">Elec. Rate
+                            (₹/kWh)</label>
+                        <input id="elecRate" placeholder="10"
+                            class="w-full bg-transparent border-0 p-0 text-lg font-bold text-slate-900 focus:ring-0 outline-none" />
+                    </div>
+
+                    <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-indigo-400">Buffer
+                            (%)</label>
+                        <input id="bufferPct" placeholder="15"
+                            class="w-full bg-transparent border-0 p-0 text-lg font-bold text-indigo-900 focus:ring-0 outline-none" />
+                    </div>
+
+                    <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Profit
+                            (%)</label>
+                        <input id="profitPct" placeholder="20"
+                            class="w-full bg-transparent border-0 p-0 text-lg font-bold text-emerald-900 focus:ring-0 outline-none" />
+                    </div>
+                </div>
+
+                <div
+                    class="mt-8 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M6.267 3.455a3.066 3.066 0 001.745-.713 1.1 1.1 0 011.976 0 3.066 3.066 0 001.745.713 1.1 1.1 0 01.988 1.712 3.066 3.066 0 000 3.66 1.1 1.1 0 01-.988 1.712 3.066 3.066 0 00-1.745.713 1.1 1.1 0 01-1.976 0 3.066 3.066 0 00-1.745-.713 1.1 1.1 0 01-.988-1.712 3.066 3.066 0 000-3.66 1.1 1.1 0 01.988-1.712zM10 11a1 1 0 100-2 1 1 0 000 2z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Settings saved locally
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Tabs -->
+        <nav
+            class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm glass-tab rounded-3xl shadow-2xl shadow-slate-200 border border-white/50 p-2 flex items-center justify-between z-50">
+            <button data-screen="calculator" id="tab-calculator"
+                class="tab flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl transition-all tab-active">
+                <span class="text-xl">🧮</span>
+                <span class="text-[10px] font-black uppercase tracking-widest opacity-80">Calc</span>
+            </button>
+            <button data-screen="materials" id="tab-materials"
+                class="tab flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl transition-all text-slate-400 hover:text-slate-600">
+                <span class="text-xl">📦</span>
+                <span class="text-[10px] font-black uppercase tracking-widest opacity-80">Stock</span>
+            </button>
+            <button data-screen="settings" id="tab-settings"
+                class="tab flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-2xl transition-all text-slate-400 hover:text-slate-600">
+                <span class="text-xl">⚙️</span>
+                <span class="text-[10px] font-black uppercase tracking-widest opacity-80">Set</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal"
+        class="fixed inset-0 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm z-[100] p-4">
+        <div class="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 border border-slate-100">
+            <h3 id="modalTitle" class="text-2xl font-black text-slate-900 mb-6 text-center">Add Material</h3>
+
+            <div class="space-y-4">
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Name</label>
+                    <input id="matName" placeholder="e.g. PLA Pro"
+                        class="w-full bg-slate-50 border-0 rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-accent transition-all outline-none" />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Cost per gram
+                        (₹)</label>
+                    <input id="matCost" inputmode="decimal" placeholder="e.g. 0.35"
+                        class="w-full bg-slate-50 border-0 rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-accent transition-all outline-none" />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mt-8">
+                <button id="modalCancel"
+                    class="py-4 rounded-2xl font-black text-slate-400 hover:bg-slate-50 transition-all uppercase tracking-widest text-xs">
+                    Cancel
+                </button>
+                <button id="modalSave"
+                    class="bg-accent text-white py-4 rounded-2xl font-black shadow-lg shadow-accent/20 hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest text-xs">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ---------- storage helpers ---------- */
+        const LS_MATERIALS = 'pp_materials_v1';
+        const LS_SETTINGS = 'pp_settings_v1';
+
+        function readJSON(k, fallback) {
+            try {
+                return JSON.parse(localStorage.getItem(k)) ?? fallback;
+            } catch (e) { return fallback; }
+        }
+        function writeJSON(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+
+        /* ---------- default data ---------- */
+        const DEFAULT_MATERIALS = [
+            { id: cryptoRandomId(), name: 'PLA', cost: 0.35 },
+            { id: cryptoRandomId(), name: 'PETG', cost: 0.45 },
+            { id: cryptoRandomId(), name: 'ABS', cost: 0.5 }
+        ];
+
+        const DEFAULT_SETTINGS = {
+            machineCost: 35000,
+            lifespanHours: 5000,
+            avgPowerW: 150,
+            elecRate: 10,
+            bufferPct: 15,
+            profitPct: 20
+        };
+
+        /* ---------- tiny utils ---------- */
+        function cryptoRandomId() { return Math.random().toString(36).slice(2, 10); }
+        function fmt(n) { return '₹' + Number(n || 0).toFixed(2); }
+        function num(v, fallback = 0) { v = v === '' || v === null || v === undefined ? fallback : v; return Number(String(v).replace(',', '.')) || fallback; }
+
+        /* ---------- state ---------- */
+        let materials = readJSON(LS_MATERIALS, null);
+        if (!materials || !Array.isArray(materials) || materials.length === 0) {
+            materials = DEFAULT_MATERIALS;
+            writeJSON(LS_MATERIALS, materials);
+        }
+        let settings = readJSON(LS_SETTINGS, DEFAULT_SETTINGS);
+
+        /* ---------- DOM refs ---------- */
+        const gramsEl = document.getElementById('grams');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const matSelect = document.getElementById('materialSelect');
+        const totalPriceEl = document.getElementById('totalPrice');
+        const materialCostEl = document.getElementById('materialCost');
+        const electricityCostEl = document.getElementById('electricityCost');
+        const deprCostEl = document.getElementById('deprCost');
+        const bufferCostEl = document.getElementById('bufferCost');
+        const profitCostEl = document.getElementById('profitCost');
+
+        const addMaterialBtn = document.getElementById('addMaterialBtn');
+        const matListEl = document.getElementById('matList');
+
+        const machineCostEl = document.getElementById('machineCost');
+        const lifespanEl = document.getElementById('lifespan');
+        const avgPowerEl = document.getElementById('avgPower');
+        const elecRateEl = document.getElementById('elecRate');
+        const bufferPctEl = document.getElementById('bufferPct');
+        const profitPctEl = document.getElementById('profitPct');
+
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const matNameInput = document.getElementById('matName');
+        const matCostInput = document.getElementById('matCost');
+        const modalCancel = document.getElementById('modalCancel');
+        const modalSave = document.getElementById('modalSave');
+
+        const tabs = document.querySelectorAll('.tab');
+        const screens = {
+            calculator: document.getElementById('screen-calculator'),
+            materials: document.getElementById('screen-materials'),
+            settings: document.getElementById('screen-settings')
+        };
+
+        /* ---------- init ---------- */
+        function init() {
+            loadSettingsToUI();
+            renderMaterialsList();
+            populateMaterialSelect();
+            bindEvents();
+            recalc();
+            tryRegisterSW();
+        }
+        function loadSettingsToUI() {
+            machineCostEl.value = settings.machineCost;
+            lifespanEl.value = settings.lifespanHours;
+            avgPowerEl.value = settings.avgPowerW;
+            elecRateEl.value = settings.elecRate;
+            bufferPctEl.value = settings.bufferPct;
+            profitPctEl.value = settings.profitPct;
+        }
+
+        /* ---------- material UI ---------- */
+        function renderMaterialsList() {
+            matListEl.innerHTML = '';
+            materials.forEach(m => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center p-4 rounded-2xl bg-slate-50 border border-slate-100/50';
+                item.innerHTML = `
+                    <div>
+                        <div class="font-bold text-slate-900">${escapeHtml(m.name)}</div>
+                        <div class="text-[11px] font-black uppercase tracking-wider text-slate-400">₹${Number(m.cost).toFixed(3)} / gram</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm transition-all text-slate-400 hover:text-accent" data-id="${m.id}" data-action="edit">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
+                        </button>
+                        <button class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white hover:shadow-sm transition-all text-slate-400 hover:text-red-500" data-id="${m.id}" data-action="delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                `;
+                matListEl.appendChild(item);
+            });
+        }
+
+        /* ---------- material select ---------- */
+        function populateMaterialSelect() {
+            matSelect.innerHTML = '';
+            materials.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = `${m.name} — ₹${Number(m.cost).toFixed(3)} /g`;
+                matSelect.appendChild(opt);
+            });
+        }
+
+        /* ---------- events ---------- */
+        function bindEvents() {
+            gramsEl.addEventListener('input', recalc);
+            hoursEl.addEventListener('input', recalc);
+            minutesEl.addEventListener('input', recalc);
+            matSelect.addEventListener('change', recalc);
+
+            [machineCostEl, lifespanEl, avgPowerEl, elecRateEl, bufferPctEl, profitPctEl]
+                .forEach(i => i.addEventListener('change', onSettingsChange));
+
+            addMaterialBtn.addEventListener('click', () => openModal('Add Material'));
+            matListEl.addEventListener('click', onMaterialsListClick);
+            modalCancel.addEventListener('click', closeModal);
+            modalSave.addEventListener('click', onModalSave);
+
+            // tabs
+            tabs.forEach(t => {
+                t.addEventListener('click', () => {
+                    tabs.forEach(tab => {
+                        tab.classList.remove('tab-active', 'text-slate-900');
+                        tab.classList.add('text-slate-400');
+                    });
+                    t.classList.add('tab-active');
+                    t.classList.remove('text-slate-400');
+                    showScreen(t.dataset.screen);
+                });
+            });
+        }
+
+        /* ---------- actions ---------- */
+        function onMaterialsListClick(e) {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const id = btn.dataset.id;
+            const action = btn.dataset.action;
+            if (action === 'edit') {
+                const m = materials.find(x => x.id === id);
+                openModal('Edit Material', m);
+            } else if (action === 'delete') {
+                if (confirm('Delete this material?')) {
+                    materials = materials.filter(x => x.id !== id);
+                    writeJSON(LS_MATERIALS, materials);
+                    renderMaterialsList();
+                    populateMaterialSelect();
+                    recalc();
+                }
+            }
+        }
+        function openModal(title, material = null) {
+            modalTitle.textContent = title;
+            if (material) {
+                matNameInput.value = material.name;
+                matCostInput.value = material.cost;
+                modal.dataset.editId = material.id;
+            } else {
+                matNameInput.value = '';
+                matCostInput.value = '';
+                delete modal.dataset.editId;
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            matNameInput.focus();
+        }
+        function closeModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        function onModalSave() {
+            const name = matNameInput.value.trim();
+            const cost = parseFloat(matCostInput.value.replace(',', '.')) || 0;
+            if (!name || cost <= 0) { alert('Enter valid name and cost/gram'); return; }
+
+            if (modal.dataset.editId) {
+                const id = modal.dataset.editId;
+                const idx = materials.findIndex(x => x.id === id);
+                if (idx > -1) {
+                    materials[idx].name = name;
+                    materials[idx].cost = cost;
+                }
+            } else {
+                materials.push({ id: cryptoRandomId(), name, cost });
+            }
+            writeJSON(LS_MATERIALS, materials);
+            renderMaterialsList();
+            populateMaterialSelect();
+            closeModal();
+            recalc();
+        }
+
+        /* ---------- settings ---------- */
+        function onSettingsChange() {
+            settings.machineCost = num(machineCostEl.value, settings.machineCost);
+            settings.lifespanHours = num(lifespanEl.value, settings.lifespanHours);
+            settings.avgPowerW = num(avgPowerEl.value, settings.avgPowerW);
+            settings.elecRate = num(elecRateEl.value, settings.elecRate);
+            settings.bufferPct = num(bufferPctEl.value, settings.bufferPct);
+            settings.profitPct = num(profitPctEl.value, settings.profitPct);
+            writeJSON(LS_SETTINGS, settings);
+            recalc();
+        }
+
+        /* ---------- calculations ---------- */
+        function recalc() {
+            const grams = num(gramsEl.value, 0);
+            const tHours = num(hoursEl.value, 0) + (num(minutesEl.value, 0) / 60);
+
+            const matId = matSelect.value || (materials[0] && materials[0].id);
+            const material = materials.find(m => m.id === matId) || materials[0];
+
+            const materialCost = grams * (material ? material.cost : 0);
+
+            // energy: avgPowerW in W -> kW * hours = kWh
+            const energyKWh = (settings.avgPowerW / 1000) * tHours;
+            const electricityCost = energyKWh * settings.elecRate;
+
+            // depreciation
+            const depreciationPerHour = settings.machineCost / Math.max(settings.lifespanHours, 1);
+            const depreciationCost = depreciationPerHour * tHours;
+
+            const baseCost = materialCost + electricityCost + depreciationCost;
+            const bufferCost = baseCost * (settings.bufferPct / 100);
+            const costWithBuffer = baseCost + bufferCost;
+            const profit = costWithBuffer * (settings.profitPct / 100);
+            const total = costWithBuffer + profit;
+
+            totalPriceEl.textContent = fmt(total);
+            materialCostEl.textContent = fmt(materialCost);
+            electricityCostEl.textContent = fmt(electricityCost);
+            deprCostEl.textContent = fmt(depreciationCost);
+            bufferCostEl.textContent = fmt(bufferCost);
+            profitCostEl.textContent = fmt(profit);
+        }
+
+        /* ---------- screens ---------- */
+        function showScreen(name) {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[name].classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        /* ---------- helpers ---------- */
+        function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]); }
+
+        /* ---------- service worker ---------- */
+        function tryRegisterSW() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').then(() => {
+                    console.log('SW registered');
+                    document.getElementById('powered').textContent = 'Offline-ready';
+                }).catch(() => {
+                    console.log('SW failed');
+                });
+            }
+        }
+
+        /* ---------- start ---------- */
+        init();
+    </script>
+</body>
+
+</html>
